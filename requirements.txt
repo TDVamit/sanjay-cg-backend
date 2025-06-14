@@ -1,0 +1,38 @@
+# FastAPI and Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database
+motor==3.3.2
+pymongo==4.6.0
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+
+# Configuration & Environment
+python-dotenv==1.0.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Validation
+email-validator==2.1.0
+
+# AI & OpenAI Integration - Fixed compatibility issues
+openai==1.57.2
+httpx==0.27.2
+
+# PDF Processing
+pdf2image==1.17.0
+Pillow==10.2.0
+
+# File Operations
+aiofiles==23.2.0
+
+# Additional Dependencies for PDF processing
+# Note: pdf2image requires poppler-utils to be installed on the system
+# Ubuntu/Debian: sudo apt-get install poppler-utils
+# macOS: brew install poppler
+# Windows: Download poppler binaries and add to PATH 

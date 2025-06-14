@@ -1,0 +1,9 @@
+[project]
+name = "sanjay-cg"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "certifi>=2025.4.26",
+]
