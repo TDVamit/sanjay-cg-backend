@@ -19,12 +19,14 @@ class UserLogin(BaseModel):
 
 class User(BaseModel):
     """User response model"""
-    id: Optional[str] = Field(alias="_id")
+    id: str = Field(alias="_id")
     username: str
     email: str
     full_name: Optional[str] = None
+    user_role: str
+    user_profile: Optional[str] = None  # Base64 encoded WebP image
     is_active: bool = True
-    created_at: datetime
+    created_at: str  # Changed to string to match ISO format
 
     class Config:
         populate_by_name = True

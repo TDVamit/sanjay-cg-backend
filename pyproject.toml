@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "certifi>=2025.4.26",
+    "uvicorn>=0.34.3",
 ]

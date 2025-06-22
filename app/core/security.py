@@ -137,6 +137,10 @@ async def get_user(username: str) -> Optional[UserInDB]:
             if "_id" in user_data:
                 user_data["_id"] = str(user_data["_id"])
             
+            # Convert datetime to ISO string for backward compatibility
+            if "created_at" in user_data and hasattr(user_data["created_at"], "isoformat"):
+                user_data["created_at"] = user_data["created_at"].isoformat()
+            
             return UserInDB(**user_data)
         return None
         

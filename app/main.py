@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.database.mongodb import connect_to_mongo, close_mongo_connection, get_database
-from app.routers import auth, protected, documents, roadmaps, categories
+from app.routers import auth, protected, documents, roadmaps, categories, guidance_agents
 
 # Create FastAPI application
 app = FastAPI(
@@ -25,6 +25,7 @@ app.include_router(protected.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(roadmaps.router, prefix="/api/v1")
 app.include_router(categories.router, prefix="/api/v1")
+app.include_router(guidance_agents.router, prefix="/api/v1")
 
 # Database connection events
 @app.on_event("startup")
@@ -57,7 +58,8 @@ async def root():
             "protected_routes": "/api/v1/protected",
             "document_processing": "/api/v1/documents",
             "roadmaps": "/api/v1/roadmaps",
-            "categories": "/api/v1/categories"
+            "categories": "/api/v1/categories",
+            "guidance_agents": "/api/v1/guidance-agents"
         },
         "features": [
             "🔐 JWT Authentication",
