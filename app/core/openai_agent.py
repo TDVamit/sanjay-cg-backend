@@ -249,6 +249,7 @@ Provide constructive feedback in each comment.'''
                 ],
                 max_tokens=4096,
                 temperature=0.7,
+                response_format={"type": "json_object"}
             )
             
             result = response.choices[0].message.content
