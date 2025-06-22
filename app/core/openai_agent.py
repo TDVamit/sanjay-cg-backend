@@ -241,11 +241,9 @@ Provide constructive feedback in each comment.'''
             )
         
         try:
-            print(f"🤖 Starting chat completion with model: {self.model}")
-            print(f"📝 Prompt: {prompt[:100]}...")
             
             response = await self.client.chat.completions.create(
-                model='gpt-3.5-turbo',
+                model='gpt-4.1-mini',
                 messages=[
                     {"role": "user", "content": prompt}
                 ],

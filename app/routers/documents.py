@@ -42,8 +42,6 @@ async def chat_completion(
     Returns the AI's response.
     """
     try:
-        print(f"💬 Chat request from user: {current_user.username}")
-        print(f"📝 Prompt length: {len(request.prompt)} characters")
         
         # Check if OpenAI is available
         if not openai_agent.is_available():
