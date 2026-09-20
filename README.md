@@ -1,275 +1,146 @@
-# FastAPI Authentication System
+# Sanjay Career Guidance — backend
 
-A professional authentication system built with FastAPI and MongoDB, featuring user registration, login, and JWT-based authentication with a well-organized project structure.
+Sanjay’s backend is a FastAPI service that authenticates users, stores career content in MongoDB, and connects the frontend to AI chat, resume ATS analysis, PDF processing, and career-roadmap APIs.
 
-## ✨ Features
+The browser client is maintained in [TDVamit/Sanjay-CG](https://github.com/TDVamit/Sanjay-CG).
 
-- ✅ **User Registration & Login** - Secure account creation and authentication
-- ✅ **JWT Authentication** - Stateless token-based authentication
-- ✅ **Password Security** - Bcrypt hashing for password storage
-- ✅ **MongoDB Integration** - Async database operations with Motor
-- ✅ **Input Validation** - Pydantic models with comprehensive validation
-- ✅ **Protected Routes** - Authentication middleware for secure endpoints
-- ✅ **Professional Structure** - Organized codebase following FastAPI best practices
-- ✅ **Auto-generated Documentation** - Swagger UI and ReDoc integration
-- ✅ **Configuration Management** - Environment-based settings with Pydantic
+## Capabilities
 
-## 🏗️ Project Structure
+- User registration, login, refresh, logout, current-user, profile-picture, and protected profile/dashboard/settings endpoints.
+- JWT access and refresh tokens with bcrypt password hashing.
+- AI chat used by the career assistant and frontend assessment flow to select four roadmap records from the available catalog.
+- Resume PDF upload, PDF-to-image conversion through Poppler/pdf2image, and OpenAI-powered ATS category scoring with comments.
+- Authenticated CRUD APIs for roadmaps, categories, and guidance agents, with pagination, search, and category filters.
+- Health, database-status, Swagger UI, and ReDoc endpoints for local operations and integration checks.
 
+## API surface
+
+The API is mounted under `/api/v1`:
+
+| Area | Representative endpoints |
+| --- | --- |
+| Authentication | `/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/me` |
+| Protected user APIs | `/protected/profile`, `/protected/dashboard`, `/protected/settings` |
+| AI and documents | `/documents/chat`, `/documents/chat-basic`, `/documents/analyze-resume`, `/documents/pdf-to-images` |
+| Roadmaps | `/roadmaps/` and `/roadmaps/{roadmap_id}` |
+| Categories | `/categories/` and `/categories/{category_id}` |
+| Guidance agents | `/guidance-agents/` and `/guidance-agents/{agent_id}` |
+
+Operational endpoints are available at `/`, `/health`, and `/db-status`. FastAPI exposes interactive documentation at `/docs` and `/redoc`.
+
+## Architecture
+
+```text
+React/Vite frontend
+       │ HTTPS + Authorization: Bearer <access token>
+       ▼
+FastAPI app (app/main.py)
+  ├─ auth + JWT security
+  ├─ document router → temporary PDF files → Poppler/pdf2image → OpenAI
+  ├─ roadmap/category/guidance-agent routers
+  └─ MongoDB connection via Motor
 ```
-.
-├── app/
-│   ├── __init__.py
-│   ├── main.py                    # FastAPI application and configuration
-│   │   └── __init__.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── config.py             # Application settings and configuration
-│   │   └── security.py           # Authentication and security utilities
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── user.py               # Pydantic models for users
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   ├── auth.py               # Authentication endpoints
-│   │   └── protected.py          # Protected route examples
-│   └── database/
-│       ├── __init__.py
-│       └── mongodb.py            # Database connection and configuration
-├── start.py                       # Server startup script
-├── requirements.txt               # Python dependencies
-├── .env                          # Environment variables (create this)
-└── README.md                     # This file
-```
 
-## 🚀 Quick Start
+The API owns authentication, validation, persistence, temporary document processing, and calls to OpenAI. The frontend owns navigation, assessment form state, token storage/refresh, and presentation. In the assessment flow, the frontend supplies answers and the roadmap catalog to `/documents/chat`; the model returns four exact roadmap IDs, which the frontend validates before displaying them.
 
-### 1. Install Dependencies
+## Tech stack
+
+- Python 3.12+, FastAPI, Uvicorn, Pydantic Settings
+- Motor/PyMongo for asynchronous MongoDB access
+- `python-jose` and Passlib/bcrypt for JWT and password security
+- OpenAI Python client for chat and image-based resume analysis
+- `pdf2image`, Poppler, Pillow, and `python-multipart` for uploads and PDF conversion
+- `uv.lock` and `requirements.txt` for dependency management
+
+## Safe local setup
+
+Requirements: Python 3.12+, MongoDB, and Poppler. On macOS, install Poppler with `brew install poppler`; on Debian/Ubuntu, install `poppler-utils` with the system package manager.
 
 ```bash
+git clone https://github.com/TDVamit/sanjay-cg-backend.git
+cd sanjay-cg-backend
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
-
-Create a `.env` file in the project root:
+Create a local `.env` file. Use your own values; never commit this file or paste real secrets into documentation:
 
 ```env
-# Database Configuration
-MONGODB_URL=mongodb+srv://effinfinefriday:zoK7WFMVzhCpwWyH@cluster0.iawq3rz.mongodb.net/
-DATABASE_NAME=fastapi_auth_db
-
-# JWT Configuration
-JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production-please
+MONGODB_URL=mongodb://127.0.0.1:27017
+DATABASE_NAME=sanjay_cg
+JWT_SECRET_KEY=replace-with-a-long-random-secret
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Server Configuration
-SERVER_HOST=0.0.0.0
+SERVER_HOST=127.0.0.1
 SERVER_PORT=8000
-
-# CORS Configuration (comma-separated list)
-CORS_ORIGINS=["*"]
+CORS_ORIGINS=["http://localhost:5173"]
+OPENAI_API_KEY=replace-with-your-openai-key
+OPENAI_MODEL=gpt-4.1
 ```
 
-### 3. Start the Server
+The settings loader is case-insensitive, so these names are suitable even though the code’s model fields are lowercase. `MONGODB_URL` is required. `OPENAI_API_KEY` is required for AI features; without it, document AI routes report the AI service as unavailable. The frontend should point `VITE_BACKEND_SERVER_URL` at `http://127.0.0.1:8000/api/v1`.
+
+## Run the service
+
+For the repository’s development launcher:
 
 ```bash
 python start.py
 ```
 
-The server will be available at:
-- **API**: http://localhost:8000
-- **Interactive Documentation**: http://localhost:8000/docs
-- **Alternative Documentation**: http://localhost:8000/redoc
+`start.py` checks for Poppler, installs Python requirements with `uv` when available, and starts Uvicorn with reload enabled. For a more predictable environment, install dependencies yourself and run Uvicorn directly:
 
-## 📚 API Documentation
-
-### Base URL
-All API endpoints are prefixed with `/api/v1`
-
-### Authentication Endpoints
-
-#### Register User
-**POST** `/api/v1/auth/register`
-
-Create a new user account.
-
-```json
-{
-  "username": "johndoe",
-  "email": "john@example.com",
-  "password": "securepassword123",
-  "full_name": "John Doe"
-}
-```
-
-#### Login User
-**POST** `/api/v1/auth/login`
-
-Authenticate user and receive JWT token.
-
-```json
-{
-  "username": "johndoe",
-  "password": "securepassword123"
-}
-```
-
-#### Get Current User
-**GET** `/api/v1/auth/me`
-
-Get authenticated user information (requires JWT token).
-
-**Headers:**
-```
-Authorization: Bearer {your_jwt_token}
-```
-
-### Protected Endpoints
-
-#### User Profile
-**GET** `/api/v1/protected/profile`
-
-Get detailed user profile information.
-
-#### User Dashboard
-**GET** `/api/v1/protected/dashboard`
-
-Get user dashboard data with statistics.
-
-#### User Settings
-**GET** `/api/v1/protected/settings`
-
-Get user preferences and settings.
-
-## 🔒 Authentication Flow
-
-1. **Register**: Create account with `/api/v1/auth/register`
-2. **Login**: Authenticate with `/api/v1/auth/login` to receive JWT token
-3. **Access Protected Routes**: Include JWT in `Authorization: Bearer <token>` header
-4. **Token Expiry**: Tokens expire after 30 minutes (configurable)
-
-## 🧪 Testing the API
-
-### Using curl
-
-1. **Register a new user:**
 ```bash
-curl -X POST "http://localhost:8000/api/v1/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "testpassword123",
-    "full_name": "Test User"
-  }'
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-2. **Login:**
-```bash
-curl -X POST "http://localhost:8000/api/v1/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "testuser",
-    "password": "testpassword123"
-  }'
+Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for the OpenAPI UI.
+
+## Configuration reference
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `MONGODB_URL` | Yes | MongoDB connection string |
+| `DATABASE_NAME` | No | Database name; defaults to `fastapi_auth_db` |
+| `JWT_SECRET_KEY` | No in code, required for safe production | JWT signing secret; replace the development default |
+| `JWT_ALGORITHM` | No | JWT algorithm; defaults to `HS256` |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | No | Access-token lifetime; defaults to `30` |
+| `SERVER_HOST` / `SERVER_PORT` | No | Bind address and port; defaults to `127.0.0.1:8000` |
+| `CORS_ORIGINS` | Defined in settings | Intended allowed-origin list |
+| `OPENAI_API_KEY` | For AI features | OpenAI credential, server-side only |
+| `OPENAI_MODEL` | No | OpenAI model; defaults to `gpt-4.1` |
+
+## Production notes
+
+- Run behind an HTTPS reverse proxy or managed platform and use a production Uvicorn process configuration.
+- Generate a strong unique `JWT_SECRET_KEY`; do not use the placeholder default.
+- Restrict CORS to the deployed frontend origin. Current `app/main.py` still uses `allow_origins=["*"]`, so CORS hardening remains an application task.
+- Keep MongoDB and OpenAI credentials in the host’s secret manager/environment, not in Git, README examples, browser variables, or logs.
+- The current checkout includes a tracked `.env` and a manual database smoke script; rotate any credentials they may contain and remove sensitive artifacts from repository history before treating the project as production-ready.
+- Add request-size/rate limits and structured error logging before exposing PDF and AI endpoints publicly.
+- No verified public API deployment URL is present in the repository; `/docs` is therefore documented for local use only.
+
+## Development status
+
+This is an active prototype backend supporting the Sanjay frontend. The repository contains a manual database connectivity script (`test.py`), but no automated pytest suite or CI test workflow was found. Validate changes with the OpenAPI docs and a local MongoDB/OpenAI-enabled integration run.
+
+## Project layout
+
+```text
+app/
+  main.py                 FastAPI app, middleware, routers, health endpoints
+  core/                   settings, JWT security, OpenAI agent, PDF utilities
+  database/               Motor/MongoDB connection lifecycle
+  models/                 Pydantic request and response models
+  routers/                auth, documents, roadmaps, categories, guidance agents
+requirements.txt          pinned runtime dependencies
+pyproject.toml            project metadata and uv configuration
+start.py                  development startup helper
 ```
 
-3. **Access protected route:**
-```bash
-curl -X GET "http://localhost:8000/api/v1/auth/me" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
-```
+## Links
 
-### Using the Interactive Documentation
-
-Visit http://localhost:8000/docs for the Swagger UI where you can:
-- Test all endpoints interactively
-- View request/response schemas
-- Authenticate and test protected routes
-- Download OpenAPI specifications
-
-## ⚙️ Configuration
-
-The application uses Pydantic Settings for configuration management. All settings can be configured via environment variables:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MONGODB_URL` | MongoDB connection string | **Required** |
-| `DATABASE_NAME` | Database name | `fastapi_auth_db` |
-| `JWT_SECRET_KEY` | Secret key for JWT signing | **Change in production!** |
-| `JWT_ALGORITHM` | JWT algorithm | `HS256` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time | `30` |
-| `SERVER_HOST` | Server host | `0.0.0.0` |
-| `SERVER_PORT` | Server port | `8000` |
-| `CORS_ORIGINS` | Allowed CORS origins | `["*"]` |
-
-## 🔐 Security Features
-
-- **Password Hashing**: Bcrypt with automatic salt generation
-- **JWT Tokens**: Secure, stateless authentication
-- **Input Validation**: Comprehensive validation with Pydantic
-- **CORS Protection**: Configurable cross-origin request handling
-- **Environment Variables**: Sensitive data stored securely
-- **Database Security**: Parameterized queries prevent injection attacks
-
-## 🏃‍♀️ Development
-
-The application includes:
-- **Auto-reload**: Server automatically restarts on code changes
-- **Comprehensive Logging**: Detailed logging for debugging
-- **Error Handling**: Proper HTTP status codes and error messages
-- **Type Hints**: Full type annotation for better IDE support
-- **Async/Await**: Fully asynchronous for better performance
-
-## 🚀 Production Deployment
-
-### Security Checklist
-
-1. **Set a strong JWT secret key**
-   ```env
-   JWT_SECRET_KEY=your-super-long-random-secret-key-here
-   ```
-
-2. **Configure specific CORS origins**
-   ```env
-   CORS_ORIGINS=["https://yourdomain.com", "https://app.yourdomain.com"]
-   ```
-
-3. **Use a production WSGI server** like Gunicorn:
-   ```bash
-   pip install gunicorn
-   gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
-   ```
-
-4. **Set up proper logging and monitoring**
-
-5. **Configure database indexes** for better performance:
-   ```javascript
-   // In MongoDB
-   db.users.createIndex({ "username": 1 }, { unique: true })
-   db.users.createIndex({ "email": 1 }, { unique: true })
-   ```
-
-### Environment Variables for Production
-
-```env
-# Production environment
-JWT_SECRET_KEY=your-production-secret-key-very-long-and-random
-CORS_ORIGINS=["https://yourdomain.com"]
-SERVER_HOST=127.0.0.1
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-```
-
-## 📝 License
-
-This project is open source and available under the [MIT License](https://opensource.org/licenses/MIT).
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📞 Support
-
-For support and questions, please [open an issue](https://github.com/yourusername/fastapi-auth/issues) on GitHub. 
+- [Backend repository](https://github.com/TDVamit/sanjay-cg-backend)
+- [Frontend repository](https://github.com/TDVamit/Sanjay-CG)
